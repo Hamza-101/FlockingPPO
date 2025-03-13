@@ -177,11 +177,8 @@ class FlockingEnv(gym.Env):
                 
         for _, other in enumerate(self.agents):
             if agent != other:
-                distance = np.linalg.norm(other.position - agent.position)
-
-                if(distance <= SimulationVariables["NeighborhoodRadius"]):
-                        neighbor_positions.append(other.position)
-                        neighbor_velocities.append(other.velocity)                        
+                neighbor_positions.append(other.position)
+                neighbor_velocities.append(other.velocity)                        
 
         return neighbor_positions, neighbor_velocities         
    
