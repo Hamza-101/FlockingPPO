@@ -179,14 +179,9 @@ class FlockingEnv(gym.Env):
             if agent != other:
                 distance = np.linalg.norm(other.position - agent.position)
 
-                if(self.CTDE == True):
-                    if(distance <= SimulationVariables["NeighborhoodRadius"]):
+                if(distance <= SimulationVariables["NeighborhoodRadius"]):
                         neighbor_positions.append(other.position)
                         neighbor_velocities.append(other.velocity)                        
-                else:
-                    if(distance <= SimulationVariables["NeighborhoodRadius"]):
-                        neighbor_positions.append(other.position)
-                        neighbor_velocities.append(other.velocity)
 
         return neighbor_positions, neighbor_velocities         
    
@@ -268,6 +263,8 @@ class FlockingEnv(gym.Env):
             else:
                 CohesionReward -= 10
                 outofflock = True
+
+            total_reward=AlignmentReward+CohesionReward
 
             return total_reward, AlignmentReward, CohesionReward, outofflock
 
