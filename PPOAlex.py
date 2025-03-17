@@ -23,7 +23,7 @@ positions_directory = "Results/Flocking/Testing/Episodes"
 
 policy_kwargs = dict(
     activation_fn=th.nn.Tanh,  
-    net_arch=[dict(pi=[512, 512], vf=[512, 512])]   # decreased from 7 layers
+    net_arch=[dict(pi=[512, 512, 512, 512, 512, 512, 512, 512], vf=[512, 512, 512, 512, 512, 512, 512, 512])]   # decreased from 7 layers
 )
 
 class Encoder(json.JSONEncoder):
@@ -197,7 +197,6 @@ class FlockingEnv(gym.Env):
             total_reward += agent_reward
             
         if(self.CTDE==True):
-            # memory buffer
             self.alignment_rewards_buffer.append(cumulative_alignment)
             self.cohesion_rewards_buffer.append(cumulative_cohesion)
 
@@ -227,8 +226,8 @@ class FlockingEnv(gym.Env):
         total_reward = 0
         outofflock = False
 
-        c_weight = 1.3  # 1.0  
-        a_weight = 0.2  # 0.3
+        c_weight = 2.0  # 1.0  
+        a_weight = 0.4  # 0.3
         s_weight = 0.1  # 0.5
 
         if len(neighbor_positions) > 0:
@@ -236,7 +235,7 @@ class FlockingEnv(gym.Env):
             group_center = np.mean(neighbor_positions, axis=0)
             d_to_center = np.linalg.norm(agent.position - group_center)
             if d_to_center <= SimulationVariables["SafetyRadius"]:
-                CohesionReward = 15
+                CohesionReward = 20
             elif d_to_center <= SimulationVariables["NeighborhoodRadius"]:
                 CohesionReward = 10 * (1 - (d_to_center - SimulationVariables["SafetyRadius"]) / (SimulationVariables["NeighborhoodRadius"] - SimulationVariables["SafetyRadius"]))
             else:
@@ -498,7 +497,7 @@ class LossCallback(BaseCallback):
         return True
 
 class AdaptiveExplorationCallback(BaseCallback):
-    def __init__(self, initial_ent_coef=0.40, min_ent_coef=1e-10, decay_rate=0.85, max_reward_threshold=60, verbose=0):
+    def __init__(self, initial_ent_coef=0.20, min_ent_coef=1e-10, decay_rate=0.90, max_reward_threshold=10, verbose=0):
         super(AdaptiveExplorationCallback, self).__init__(verbose)
         self.initial_ent_coef = initial_ent_coef       
         self.min_ent_coef = min_ent_coef               
@@ -570,7 +569,7 @@ if __name__ == "__main__":
         
     env = SubprocVecEnv([make_env for _ in range(num_cpu)])
 
-    model = PPO(policy, env, device=device, policy_kwargs=policy_kwargs, tensorboard_log="./ppo_flocking_tensorboard/", verbose=1)
+    model = PPO(policy, env, learning_rate=SimulationVariables["LearningRate"], device=device, policy_kwargs=policy_kwargs, tensorboard_log="./ppo_flocking_tensorboard/", verbose=1)
     model.set_random_seed(SimulationVariables["ModelSeed"])
 
     model.learn(total_timesteps=SimulationVariables["LearningTimeSteps"],  
